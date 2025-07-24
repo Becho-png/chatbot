@@ -13,15 +13,25 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 def login_form():
-    st.title("Login / Register")
-    choice = st.radio("Choose action", ["Login", "Register"])
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-
+    st.title("Login / Register / Anonymous")
+    choice = st.radio("Choose action", ["Login", "Register", "Continue Anonymously"])
+    username = password = ""
+    if choice in ["Login", "Register"]:
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
     if st.button(choice):
-        conn = psycopg2.connect(st.secrets["NEON_DB_URL"])
-        cur = conn.cursor()
-        if choice == "Register":
+        if choice == "Continue Anonymously":
+            anon_id = "anon-" + str(uuid.uuid4())[:12]
+            st.session_state["user_id"] = anon_id
+            st.session_state["user"] = "Anonymous"
+            st.success(f"Continuing anonymously. Your session id: {anon_id}")
+            st.rerun()
+        elif choice == "Register":
+            if not username or not password:
+                st.error("Fill all fields")
+                return
+            conn = psycopg2.connect(st.secrets["NEON_DB_URL"])
+            cur = conn.cursor()
             try:
                 cur.execute(
                     "INSERT INTO users (username, password) VALUES (%s, %s) RETURNING user_id;",
@@ -37,6 +47,11 @@ def login_form():
                 cur.close()
                 conn.close()
         else:  # Login
+            if not username or not password:
+                st.error("Fill all fields")
+                return
+            conn = psycopg2.connect(st.secrets["NEON_DB_URL"])
+            cur = conn.cursor()
             cur.execute(
                 "SELECT user_id, password FROM users WHERE username = %s;",
                 (username,)
@@ -51,7 +66,6 @@ def login_form():
                 st.rerun()
             else:
                 st.error("Invalid login.")
-
 # ---- Chat/Database Functions ----
 
 def get_chat_history(user_id, session_id):
