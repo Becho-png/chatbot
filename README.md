@@ -72,7 +72,7 @@ README.md
 
 ---
 
-## 🇹🇷 Türkçe Kısa Açıklama
+## 🇹🇷 
 
 Bu proje, OpenAI GPT-4o destekli çoklu oturumlu bir chatbot web uygulamasıdır.
 Kullanıcı kayıt/giriş, sohbet geçmişi, görsel yükleme ve analiz gibi modern özellikler içerir.
